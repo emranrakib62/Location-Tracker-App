@@ -3,6 +3,7 @@ package com.example.googlemaps
 import android.Manifest
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.MutableLiveData
 import com.example.googlemaps.databinding.ActivityMapsBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -20,7 +21,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
-    var isgrantedpermission=false
+    var isgrantedpermission= MutableLiveData<Boolean>(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,12 +47,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 override fun onPermissionsChecked(report: MultiplePermissionsReport) {
                     if (report.areAllPermissionsGranted()) {
                         // Permissions granted, enable location-related features if needed
-                        isgrantedpermission=true
+                        isgrantedpermission.postValue(true)
                     }
 
                     if (report.isAnyPermissionPermanentlyDenied) {
                         // Redirect user to settings
-                        isgrantedpermission=false
+                        isgrantedpermission.postValue(false)
                     }
                 }
 
