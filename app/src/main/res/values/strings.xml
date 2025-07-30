@@ -2,6 +2,6 @@
     <string name="app_name">Google Maps</string>
     <string name="title_activity_maps">MapsActivity</string>
 
-    <string name="map_api" translatable="false">AIzaSyD1Eizi9338jLar3weITgSoKC-H0ghJieA</string>
+    <string name="map_api" translatable="false">AIzaSyCK1sYi8n3mukUoypZQwmtVxjMJ7uzo69Q</string>
 
 </resources>
