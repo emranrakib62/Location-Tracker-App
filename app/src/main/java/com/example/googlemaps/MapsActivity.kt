@@ -80,15 +80,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         isgrantedpermission.observe(this){
 
             if(it){
+                var location=getuserloaction()
 
+                val sydney = LatLng(location?.latitude?:0.0,location?.longitude?:0.0)
+                mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(sydney))
             }
         }
         // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(sydney))
+
     }
-    fun getuserloaction(): Location{
+    fun getuserloaction(): Location? {
         var location: Location?=null
         var bestlocation: Location?=null
 
@@ -103,17 +105,19 @@ val providers=locationManager.getProviders(true)
                Manifest.permission.ACCESS_COARSE_LOCATION
            ) != PackageManager.PERMISSION_GRANTED
        ) {
-           location=locationManager.getLastKnownLocation(provider)
+           return null
+       }
+       location=locationManager.getLastKnownLocation(provider)
 
-           if(location==null){
-               continue
-           }
-if(bestlocation==null || location.accuracy>bestlocation.accuracy){
-    bestlocation=location
-}
-           return location!!
+       if(location==null){
+           continue
+       }
+       if(bestlocation==null || location.accuracy>bestlocation.accuracy){
+           bestlocation=location
        }
 
+
    }
+        return bestlocation
     }
 }
