@@ -20,6 +20,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
+    var isgrantedpermission=false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,10 +46,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 override fun onPermissionsChecked(report: MultiplePermissionsReport) {
                     if (report.areAllPermissionsGranted()) {
                         // Permissions granted, enable location-related features if needed
+                        isgrantedpermission=true
                     }
 
                     if (report.isAnyPermissionPermanentlyDenied) {
                         // Redirect user to settings
+                        isgrantedpermission=false
                     }
                 }
 
