@@ -2,10 +2,10 @@ package com.example.googlemaps
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.health.connect.datatypes.ExerciseRoute
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.MutableLiveData
@@ -26,15 +26,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
-    var isgrantedpermission= MutableLiveData<Boolean>(false)
+    private val isGrantedPermission = MutableLiveData(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -51,13 +49,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .withListener(object : MultiplePermissionsListener {
                 override fun onPermissionsChecked(report: MultiplePermissionsReport) {
                     if (report.areAllPermissionsGranted()) {
-                        // Permissions granted, enable location-related features if needed
-                        isgrantedpermission.postValue(true)
-                    }
-
-                    if (report.isAnyPermissionPermanentlyDenied) {
-                        // Redirect user to settings
-                        isgrantedpermission.postValue(false)
+                        isGrantedPermission.postValue(true)
+                    } else if (report.isAnyPermissionPermanentlyDenied) {
+                        isGrantedPermission.postValue(false)
                     }
                 }
 
@@ -75,49 +69,45 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-
-
-        isgrantedpermission.observe(this){
-
-            if(it){
-                var location=getuserloaction()
-
-                val sydney = LatLng(location?.latitude?:0.0,location?.longitude?:0.0)
-                mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-                mMap.animateCamera(CameraUpdateFactory.newLatLng(sydney))
+        isGrantedPermission.observe(this) { granted ->
+            if (granted) {
+                val location = getUserLocation()
+                if (location != null) {
+                    val userLatLng = LatLng(location.latitude, location.longitude)
+                    mMap.addMarker(MarkerOptions().position(userLatLng).title("You are here"))
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f))
+                }
             }
         }
-        // Add a marker in Sydney and move the camera
-
     }
-    fun getuserloaction(): Location? {
-        var location: Location?=null
-        var bestlocation: Location?=null
 
-        var locationManager=getSystemService(LOCATION_SERVICE) as LocationManager
-val providers=locationManager.getProviders(true)
-   for (provider in providers){
-       if (ActivityCompat.checkSelfPermission(
-               this,
-               Manifest.permission.ACCESS_FINE_LOCATION
-           ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-               this,
-               Manifest.permission.ACCESS_COARSE_LOCATION
-           ) != PackageManager.PERMISSION_GRANTED
-       ) {
-           return null
-       }
-       location=locationManager.getLastKnownLocation(provider)
+    private fun getUserLocation(): Location? {
+        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+        val providers = locationManager.getProviders(true)
+        var bestLocation: Location? = null
 
-       if(location==null){
-           continue
-       }
-       if(bestlocation==null || location.accuracy>bestlocation.accuracy){
-           bestlocation=location
-       }
+        for (provider in providers) {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return null
+            }
 
+            val location = locationManager.getLastKnownLocation(provider)
+            if (location != null) {
+                if (bestLocation == null || location.accuracy < bestLocation.accuracy) {
+                    bestLocation = location
+                }
+                Log.d("TAG", "getUserLocation: $location")
+            }
+        }
 
-   }
-        return bestlocation
+        return bestLocation
     }
 }
